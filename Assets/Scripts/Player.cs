@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Player : MonoBehaviour
 {
@@ -22,6 +23,13 @@ public class Player : MonoBehaviour
     public float movingDuration;
 
     private Collider2D attachedTo;
+
+    public void Reset( Vector2 position )
+    {
+        moving = false;
+        transform.position = position;
+        targetLine.SetPosition(0, position);
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -49,10 +57,9 @@ public class Player : MonoBehaviour
             }
 
             // If Left Click
-            if ( Input.GetMouseButtonDown(0) )
+            if ( Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() )
             {
                 //hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
-
                 if ( hit )
                 {
                     // Launch Player
@@ -85,6 +92,26 @@ public class Player : MonoBehaviour
                 transform.position = Vector2.Lerp(destination, start, lerp);
             }
             //body.MovePosition(newPosition);
+        }
+    }
+
+    private void OnTriggerEnter2D( Collider2D collision )
+    {
+        if ( collision.CompareTag("Exit") )
+        {
+            GameManager.instance.ExitRoom();
+        }
+        else if ( collision.CompareTag("Entrance") )
+        {
+
+        }
+        else if ( collision.CompareTag("Enemy") )
+        {
+            GameManager.instance.HitEnemy(collision.GetComponent<Enemy>());
+        }
+        else
+        {
+            Debug.Log($"Entered Trigger Zone {collision.name}");
         }
     }
 }

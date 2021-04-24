@@ -15,7 +15,7 @@ public class PatrolPathEditor : Editor
         {
             for ( int i = 0; i < path.NumPoints; i++ )
             {
-                Vector2 newPos = Handles.FreeMoveHandle(path.pathPoints[i], Quaternion.identity, 0.1f, Vector2.zero, Handles.CylinderHandleCap);
+                Vector2 newPos = Handles.FreeMoveHandle(path.pathPoints[i], Quaternion.identity, 0.25f, Vector2.zero, Handles.CylinderHandleCap);
                 if( path[i] != newPos )
                 {
                     Undo.RecordObject(path, "Move Path Point");

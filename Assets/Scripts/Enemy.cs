@@ -10,6 +10,8 @@ public class Enemy : MonoBehaviour
     public float idleTime = 1f;
     public AnimationCurve movementCurve;
 
+    public bool frozen = true;
+
     // Private Variables
     private readonly static int IDLE = 0;
     private readonly static int MOVING = 1;
@@ -23,19 +25,21 @@ public class Enemy : MonoBehaviour
     private int state;
 
     // ToDo: Create Class? Shared with Player
+    private Vector2 initialPosition;
     private Vector2 startPosition;
     private Vector2 endPosition;
+    private float initialAngle;
     private float startAngle;
     private float endAngle;
     private float actionTimer;
     private float actionDuration;
 
-    // Start is called before the first frame update
-    void Start()
+    public void Reset()
     {
-        fov = GetComponent<FieldOfView>();
-        path = GetComponent<PatrolPath>();
-
+        // Reset Position
+        transform.position = initialPosition;
+        // Reset Rotation
+        transform.rotation = Quaternion.Euler(0, 0, initialAngle);
         // ToDo: Function? Reused in Movement
         startPosition = transform.position;
         endPosition = path[pathIndex];
@@ -46,38 +50,56 @@ public class Enemy : MonoBehaviour
             endAngle += 360;
         transform.eulerAngles = new Vector3(0, 0, endAngle);
 
+        // Reset Pathing
+        previousIndex = 0;
+        pathIndex = 1;
         actionTimer = actionDuration = idleTime;
         //Debug.Log($"Idle for {actionTimer}");
         state = IDLE;
     }
 
+    // Start is called before the first frame update
+    void Start()
+    {
+        fov = GetComponent<FieldOfView>();
+        path = GetComponent<PatrolPath>();
+
+        initialPosition = transform.position;
+        initialAngle = transform.eulerAngles.z;
+
+        Reset();
+    }
+
     // Update is called once per frame
     void Update()
     {
-        // Check if Player is Visible
-        if ( fov.CheckVisible(GameManager.instance.player.transform.position) )
+        if ( !GameManager.instance.paused && !frozen )
         {
-            GameManager.instance.PlayerVisible(this);
-        }
-        // Otherwise Move Along Patrol
-        else
-        {
-            if ( state == IDLE )
+            // Check if Player is Visible
+            if ( fov.CheckVisible(GameManager.instance.player.transform.position) )
             {
-                Idle();
+                GameManager.instance.PlayerVisible(this);
             }
-            else if( state == TURNING )
-            {
-                Turn();
-            }
-            else if( state == MOVING )
-            {
-                Move();
-            }
+            // Otherwise Move Along Patrol
             else
             {
-                Debug.Log($"Error: Enemy {name} has invalid state.");
-                state = IDLE;
+                if ( state == IDLE )
+                {
+                    Idle();
+                }
+                else if ( state == TURNING )
+                {
+                    Turn();
+                }
+                else if ( state == MOVING )
+                {
+                    Move();
+                }
+                else
+                {
+                    Debug.Log($"Error: Enemy {name} has invalid state.");
+                    state = IDLE;
+                }
             }
         }
     }
