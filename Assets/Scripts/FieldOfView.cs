@@ -5,18 +5,35 @@ using UnityEngine;
 public class FieldOfView : MonoBehaviour
 {
     public float viewRadius;
-    [Range(0,360)]
+    [Range(0,180)] // If > 180 View Texture size needs to be increased
     public float viewAngle;
+    public float meshResolution;
+    public Vector2 Position => transform.position;
 
     //public LayerMask targetMask;
     public LayerMask terrainMask;
 
+    private SpriteRenderer spriteRenderer;
+    private Sprite sprite;
+
+    private void Start()
+    {
+        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        // Create a blank Texture and Sprite to override later on.
+        int textureSize = Mathf.CeilToInt(viewRadius * 50) + 16;
+        var texture2D = new Texture2D(4 * textureSize, 4 * textureSize);
+        float x = Position.x - ( texture2D.width / 2 );
+        spriteRenderer.sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), new Vector2(0.5f, 0.1f), 100);
+        sprite = spriteRenderer.sprite;
+        //spriteR.sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), new Vector2(-texture2D.width/2, texture2D.height/2), 1);
+    }
+
     public bool CheckVisible( Vector2 position )
     {
-        Vector2 direction = position - (Vector2) transform.position;
+        Vector2 direction = position - Position;
         if ( Vector2.Angle(transform.up, direction) < viewAngle / 2 && direction.magnitude < viewRadius )
         {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction.normalized, viewRadius, terrainMask.value);
+            RaycastHit2D hit = Physics2D.Raycast(Position, direction.normalized, viewRadius, terrainMask.value);
             if( !hit )
             {
                 return true;
@@ -25,7 +42,93 @@ public class FieldOfView : MonoBehaviour
 
         return false;
     }
-    
+
+    private void Update()
+    {
+        DrawFieldOfView();
+    }
+
+    // DEBUG
+    void OnGUI()
+    {
+        if ( GUI.Button(new Rect(10.0f, 10.0f, 200.0f, 30.0f), "Print Debug") )
+            DrawDebug();
+    }
+
+    public void DrawDebug()
+    {
+
+    }
+
+    private void DrawFieldOfView()
+    {
+        int stepCount = Mathf.RoundToInt(viewAngle * meshResolution);
+        float stepAngleSize = viewAngle / stepCount;
+        float angle = -transform.eulerAngles.z - viewAngle / 2;
+        List<Vector2> viewPoints = new List<Vector2>();
+        Vector2 point = Vector2.zero;
+
+        for ( int i = 0; i < stepCount; i++ )
+        {
+            RaycastHit2D hit = ViewCast(angle);
+            if ( hit )
+            {
+                point = hit.point;
+            }
+            else
+            {
+                point = Position + DirFromAngle(angle) * viewRadius;
+            }
+            viewPoints.Add(point);
+            //Debug.Log($"Vertex {i}: {viewPoints[i]}");
+
+            //Debug.DrawLine(Position, Position + DirFromAngle(angle) * viewRadius, Color.red);
+            angle += stepAngleSize;
+        }
+
+        int vertexCount = viewPoints.Count + 1;
+        Vector2[] vertices = new Vector2[vertexCount];
+        ushort[] triangles = new ushort[( vertexCount - 2 ) * 3];
+
+        vertices[0] = new Vector2(0.5f, 0.1f);
+        for ( int i = 0; i < vertexCount-1; i++ )
+        {
+            //vertices[i + 1].x = viewPoints[i].x / sprite.bounds.size.x;
+            vertices[i + 1].x = Mathf.Clamp(
+                    ( viewPoints[i].x - sprite.bounds.center.x -
+                    ( sprite.textureRectOffset.x / sprite.texture.width ) + sprite.bounds.extents.x ) /
+                    ( 2.0f * sprite.bounds.extents.x ) * sprite.rect.width,
+                0.0f, sprite.rect.width);
+
+            //vertices[i + 1].y = viewPoints[i].y / sprite.bounds.size.y;
+            vertices[i + 1].y = Mathf.Clamp(
+                ( viewPoints[i].y - sprite.bounds.center.y -
+                ( sprite.textureRectOffset.y / sprite.texture.width ) + sprite.bounds.extents.y ) /
+                ( 2.0f * sprite.bounds.extents.y ) * sprite.rect.width,
+            0.0f, sprite.rect.width);
+
+            //Debug.DrawLine(viewPoints[i], viewPoints[i + 1], Color.yellow);
+            Debug.DrawLine(vertices[i], vertices[i + 1], Color.yellow);
+            if ( i < vertexCount - 2 )
+            {
+                triangles[i * 3] = 0;
+                triangles[i * 3 + 1] = ( ushort) (i + 1);
+                triangles[i * 3 + 2] = (ushort) (i + 2);
+            }
+        }
+
+        spriteRenderer.sprite.OverrideGeometry(vertices, triangles);
+    }
+
+    private RaycastHit2D ViewCast( float globalAngle )
+    {
+        Vector2 direction = DirFromAngle(globalAngle);
+
+        RaycastHit2D hit = Physics2D.Raycast(Position, direction, viewRadius, terrainMask.value);
+
+        return hit;
+    }
+
     public Vector2 DirFromAngle( float angleInDegrees, bool angleIsGlobal = true )
     {
         if ( !angleIsGlobal )
@@ -35,12 +138,12 @@ public class FieldOfView : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, viewRadius);
-        Vector3 viewAngleA = DirFromAngle(-viewAngle / 2, false);
-        Vector3 viewAngleB = DirFromAngle(viewAngle / 2, false);
+        //Gizmos.color = Color.white;
+        //Gizmos.DrawWireSphere(Position, viewRadius);
+        //Vector2 viewAngleA = DirFromAngle(-viewAngle / 2, false);
+        //Vector2 viewAngleB = DirFromAngle(viewAngle / 2, false);
 
-        Gizmos.DrawLine(transform.position, transform.position + viewAngleA * viewRadius);
-        Gizmos.DrawLine(transform.position, transform.position + viewAngleB * viewRadius);
+        //Gizmos.DrawLine(Position, Position + viewAngleA * viewRadius);
+        //Gizmos.DrawLine(Position, Position + viewAngleB * viewRadius);
     }
 }
