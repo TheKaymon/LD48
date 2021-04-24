@@ -4,6 +4,25 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public Vector2 targetting;
+    public Vector2 direction;
+    public float radius = 0.5f;
+
+    public LineRenderer targetLine;
+    //public Rigidbody2D body;
+
+    public float speed;
+    public LayerMask terrainMask;
+
+    public AnimationCurve movementCurve;
+    public bool moving = false;
+    public Vector2 start;
+    public Vector2 destination;
+    public float movingTimer;
+    public float movingDuration;
+
+    private Collider2D attachedTo;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -13,6 +32,59 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if ( !moving )
+        {
+            targetting = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            direction = targetting - (Vector2)transform.position;
+
+            RaycastHit2D hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
+
+            if ( hit && hit.distance < direction.magnitude )
+            {
+                targetLine.SetPosition(1, hit.point);
+            }
+            else
+            {
+                targetLine.SetPosition(1, targetting);
+            }
+
+            // If Left Click
+            if ( Input.GetMouseButtonDown(0) )
+            {
+                //hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
+
+                if ( hit )
+                {
+                    // Launch Player
+                    targetLine.enabled = false;
+                    moving = true;
+                    start = transform.position;
+                    destination = hit.point + radius * hit.normal;
+                    movingTimer = movingDuration = hit.distance / speed;
+                    attachedTo = hit.collider;
+                }
+                else
+                {
+                    Debug.Log("Error, no target found!");
+                }
+            }
+        }
+        else
+        {
+            movingTimer -= Time.deltaTime;
+            if( movingTimer < 0 )
+            {
+                moving = false;
+                transform.position = destination;
+                targetLine.SetPosition(0, transform.position);
+                targetLine.enabled = true;
+            }
+            else
+            {
+                float lerp = movementCurve.Evaluate(movingTimer / movingDuration);
+                transform.position = Vector2.Lerp(destination, start, lerp);
+            }
+            //body.MovePosition(newPosition);
+        }
     }
 }
