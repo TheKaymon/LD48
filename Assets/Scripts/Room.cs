@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class Room : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class Room : MonoBehaviour
     public bool requiresTransition = false;
     public Transform entrance;
     public Transform exit;
+
+    public List<Light2D> lights = new List<Light2D>();
 
     public void StartRoom()
     {

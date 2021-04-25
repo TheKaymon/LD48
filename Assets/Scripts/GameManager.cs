@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class GameManager : MonoBehaviour
 {
@@ -27,12 +28,14 @@ public class GameManager : MonoBehaviour
     private readonly float roomTransitionDuration = 1f;
     private float roomTransitionTimer;
 
+    private List<Light2D> roomLights = new List<Light2D>();
 
     // Start is called before the first frame update
     void Start()
     {
         ui.gameObject.SetActive(true);
         cam.transform.position = rooms[currentRoom].transform.position;
+        roomLights = rooms[currentRoom].lights;
         roomTransitionTimer = -1f;
         RestartRoom();
     }
@@ -40,6 +43,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Transitioning Between Rooms
         if( roomTransitionTimer > 0 )
         {
             roomTransitionTimer -= Time.deltaTime;
@@ -64,6 +68,15 @@ public class GameManager : MonoBehaviour
                 }
             }
             // Fade Transition
+        }
+        // Not Transitioning Between Rooms
+        else
+        {
+            // Determine if Player is too Lit Up
+            for ( int i = 0; i < roomLights.Count; i++ )
+            {
+                float radius = roomLights[i].pointLightOuterRadius;
+            }
         }
     }
 
@@ -98,8 +111,7 @@ public class GameManager : MonoBehaviour
             currentRoom++;
             rooms[currentRoom].gameObject.SetActive(true);
             rooms[currentRoom].PauseRoom();
-
-
+            roomLights = rooms[currentRoom].lights;
         }
         // Reached the End
         else
