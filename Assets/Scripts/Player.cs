@@ -5,6 +5,9 @@ using UnityEngine.EventSystems;
 
 public class Player : MonoBehaviour
 {
+    public Transform sprite;
+    public Transform tipPoint;
+
     public Vector2 targetting;
     public Vector2 direction;
     public float radius = 0.5f;
@@ -24,12 +27,15 @@ public class Player : MonoBehaviour
     public float movingDuration;
 
     private Collider2D attachedTo;
+    private Vector2 attachNormal = Vector2.up;
+    //private Vector2 tipPos;
 
     public void Reset( Vector2 position )
     {
         moving = false;
         transform.position = position;
-        targetLine.SetPosition(0, position);
+        attachNormal = Vector2.up;
+        targetLine.SetPosition(0, tipPoint.position);
     }
 
     public void Pause()
@@ -43,11 +49,17 @@ public class Player : MonoBehaviour
         paused = false;
         targetLine.enabled = true;
     }
+
+    //private void FlipSprite()
+    //{
+    //    float angle = Mathf.Atan2(attachNormal.y, attachNormal.x) * Mathf.Rad2Deg - 90f;
+    //}
+
     // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    //void Start()
+    //{
+    //    //sprite = GetComponent<SpriteRenderer>();
+    //}
 
     // Update is called once per frame
     void Update()
@@ -58,36 +70,48 @@ public class Player : MonoBehaviour
             {
                 targetting = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 direction = targetting - (Vector2)transform.position;
+                float difference = Vector2.SignedAngle(Vector2.up, direction);
+                sprite.eulerAngles = new Vector3(0, 0, difference + 45);
+                targetLine.SetPosition(0, tipPoint.position);
 
-                RaycastHit2D hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
+                if ( direction.sqrMagnitude > 1f )
+                {
+                    targetLine.enabled = true;
+                    RaycastHit2D hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
 
-                if ( hit && hit.distance < direction.magnitude )
-                {
-                    targetLine.SetPosition(1, hit.point);
-                }
-                else
-                {
-                    targetLine.SetPosition(1, targetting);
-                }
-
-                // If Left Click
-                if ( Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() )
-                {
-                    //hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
-                    if ( hit )
+                    if ( hit && hit.distance < direction.magnitude )
                     {
-                        // Launch Player
-                        targetLine.enabled = false;
-                        moving = true;
-                        start = transform.position;
-                        destination = hit.point + radius * hit.normal;
-                        movingTimer = movingDuration = hit.distance / speed;
-                        attachedTo = hit.collider;
+                        targetLine.SetPosition(1, hit.point);
                     }
                     else
                     {
-                        Debug.Log("Error, no target found!");
+                        targetLine.SetPosition(1, targetting);
                     }
+
+                    // If Left Click
+                    if ( Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() )
+                    {
+                        //hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
+                        if ( hit )
+                        {
+                            // Launch Player
+                            targetLine.enabled = false;
+                            moving = true;
+                            start = transform.position;
+                            destination = hit.point; // + radius * hit.normal;
+                            movingTimer = movingDuration = hit.distance / speed;
+                            attachedTo = hit.collider;
+                            attachNormal = hit.normal;
+                        }
+                        else
+                        {
+                            Debug.Log("Error, no target found!");
+                        }
+                    }
+                }
+                else
+                {
+                    targetLine.enabled = false;
                 }
             }
             else
@@ -97,7 +121,7 @@ public class Player : MonoBehaviour
                 {
                     moving = false;
                     transform.position = destination;
-                    targetLine.SetPosition(0, transform.position);
+                    targetLine.SetPosition(0, tipPoint.position);
                     targetLine.enabled = true;
                 }
                 else

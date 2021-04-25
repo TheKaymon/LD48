@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,10 +17,12 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
+    public Scene nextScene; // Could be string if necessary?
     public Canvas ui;
     public Player player;
     public List<Room> rooms = new List<Room>();
     public Transform cam;
+    public Light2D globalLight;
     public bool paused;
 
     private int currentRoom = 0;
@@ -33,6 +36,10 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        for ( int i = 1; i < rooms.Count; i++ )
+        {
+            rooms[i].gameObject.SetActive(false);
+        }
         ui.gameObject.SetActive(true);
         cam.transform.position = rooms[currentRoom].transform.position;
         roomLights = rooms[currentRoom].lights;
