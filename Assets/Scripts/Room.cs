@@ -5,20 +5,27 @@ using UnityEngine.Experimental.Rendering.Universal;
 
 public class Room : MonoBehaviour
 {
-    public List<Enemy> enemies;
+    public Transform enemyParent;
+    public Transform lightParent;
     public bool requiresTransition = false;
     public Transform entrance;
     public Transform exit;
 
+    [HideInInspector]
+    public List<Enemy> enemies = new List<Enemy>();
+    [HideInInspector]
     public List<Light2D> lights = new List<Light2D>();
 
     public void StartRoom()
     {
         // Reset Enemies
-        for ( int i = 0; i < enemies.Count; i++ )
+        if ( enemies.Count > 0 )
         {
-            enemies[i].Reset();
-            enemies[i].frozen = false;
+            for ( int i = 0; i < enemies.Count; i++ )
+            {
+                enemies[i].Reset();
+                enemies[i].frozen = false;
+            }
         }
         // Move Player
         GameManager.instance.player.Reset( entrance.position );
@@ -27,21 +34,25 @@ public class Room : MonoBehaviour
     public void PauseRoom()
     {
         // Pause Enemies
-        for ( int i = 0; i < enemies.Count; i++ )
+        if ( enemies.Count > 0 )
         {
-            enemies[i].frozen = true;
+            for ( int i = 0; i < enemies.Count; i++ )
+            {
+                enemies[i].frozen = true;
+            }
         }
     }
 
     // Start is called before the first frame update
-    //void Start()
-    //{
-        
-    //}
+    void Start()
+    {
+        enemyParent.GetComponentsInChildren(enemies);
+        lightParent.GetComponentsInChildren(lights);
+    }
 
     // Update is called once per frame
     //void Update()
     //{
-        
+
     //}
 }

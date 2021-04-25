@@ -17,12 +17,13 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
-    public Scene nextScene; // Could be string if necessary?
+    public string nextSceneName;
     public Canvas ui;
     public Player player;
     public List<Room> rooms = new List<Room>();
     public Transform cam;
     public Light2D globalLight;
+    public GameObject popupMenu;
     public bool paused;
 
     private int currentRoom = 0;
@@ -55,9 +56,9 @@ public class GameManager : MonoBehaviour
         {
             roomTransitionTimer -= Time.deltaTime;
 
-            // Standard Transition
-            if ( !rooms[currentRoom].requiresTransition )
-            {
+            //// Standard Transition
+            //if ( !rooms[currentRoom].requiresTransition )
+            //{
                 if ( roomTransitionTimer < 0 )
                 {
                     // Disable Last Room
@@ -73,17 +74,17 @@ public class GameManager : MonoBehaviour
                     cam.position = Vector2.Lerp(rooms[currentRoom].transform.position, lastRoomPos, lerp);
                     player.transform.position = Vector2.Lerp(rooms[currentRoom].entrance.position, lastPlayerPos, lerp);
                 }
-            }
+            //}
             // Fade Transition
         }
         // Not Transitioning Between Rooms
         else
         {
             // Determine if Player is too Lit Up
-            for ( int i = 0; i < roomLights.Count; i++ )
-            {
-                float radius = roomLights[i].pointLightOuterRadius;
-            }
+            //for ( int i = 0; i < roomLights.Count; i++ )
+            //{
+            //    float radius = roomLights[i].pointLightOuterRadius;
+            //}
         }
     }
 
@@ -123,7 +124,14 @@ public class GameManager : MonoBehaviour
         // Reached the End
         else
         {
-            WinGame();
+            if( nextSceneName != "Win" )
+            {
+                SceneManager.LoadScene(nextSceneName);
+            }
+            else
+            {
+                WinGame();
+            }
         }
     }
 
