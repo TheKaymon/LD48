@@ -36,6 +36,9 @@ public class Enemy : MonoBehaviour
 
     public void Reset()
     {
+        // Reset Pathing
+        previousIndex = 0;
+        pathIndex = 1;
         // Reset Position
         transform.position = initialPosition;
         // Reset Rotation
@@ -50,9 +53,7 @@ public class Enemy : MonoBehaviour
             endAngle += 360;
         transform.eulerAngles = new Vector3(0, 0, endAngle);
 
-        // Reset Pathing
-        previousIndex = 0;
-        pathIndex = 1;
+        // Setup Action
         actionTimer = actionDuration = idleTime;
         //Debug.Log($"Idle for {actionTimer}");
         state = IDLE;

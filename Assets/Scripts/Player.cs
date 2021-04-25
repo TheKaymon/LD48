@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
 
     public AnimationCurve movementCurve;
     public bool moving = false;
+    public bool paused = false;
     public Vector2 start;
     public Vector2 destination;
     public float movingTimer;
@@ -31,6 +32,17 @@ public class Player : MonoBehaviour
         targetLine.SetPosition(0, position);
     }
 
+    public void Pause()
+    {
+        paused = true;
+        targetLine.enabled = false;
+    }
+
+    public void Ready()
+    {
+        paused = false;
+        targetLine.enabled = true;
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -40,58 +52,61 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if ( !moving )
+        if ( !GameManager.instance.paused && !paused )
         {
-            targetting = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            direction = targetting - (Vector2)transform.position;
-
-            RaycastHit2D hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
-
-            if ( hit && hit.distance < direction.magnitude )
+            if ( !moving )
             {
-                targetLine.SetPosition(1, hit.point);
-            }
-            else
-            {
-                targetLine.SetPosition(1, targetting);
-            }
+                targetting = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                direction = targetting - (Vector2)transform.position;
 
-            // If Left Click
-            if ( Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() )
-            {
-                //hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
-                if ( hit )
+                RaycastHit2D hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
+
+                if ( hit && hit.distance < direction.magnitude )
                 {
-                    // Launch Player
-                    targetLine.enabled = false;
-                    moving = true;
-                    start = transform.position;
-                    destination = hit.point + radius * hit.normal;
-                    movingTimer = movingDuration = hit.distance / speed;
-                    attachedTo = hit.collider;
+                    targetLine.SetPosition(1, hit.point);
                 }
                 else
                 {
-                    Debug.Log("Error, no target found!");
+                    targetLine.SetPosition(1, targetting);
                 }
-            }
-        }
-        else
-        {
-            movingTimer -= Time.deltaTime;
-            if( movingTimer < 0 )
-            {
-                moving = false;
-                transform.position = destination;
-                targetLine.SetPosition(0, transform.position);
-                targetLine.enabled = true;
+
+                // If Left Click
+                if ( Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject() )
+                {
+                    //hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
+                    if ( hit )
+                    {
+                        // Launch Player
+                        targetLine.enabled = false;
+                        moving = true;
+                        start = transform.position;
+                        destination = hit.point + radius * hit.normal;
+                        movingTimer = movingDuration = hit.distance / speed;
+                        attachedTo = hit.collider;
+                    }
+                    else
+                    {
+                        Debug.Log("Error, no target found!");
+                    }
+                }
             }
             else
             {
-                float lerp = movementCurve.Evaluate(movingTimer / movingDuration);
-                transform.position = Vector2.Lerp(destination, start, lerp);
+                movingTimer -= Time.deltaTime;
+                if ( movingTimer < 0 )
+                {
+                    moving = false;
+                    transform.position = destination;
+                    targetLine.SetPosition(0, transform.position);
+                    targetLine.enabled = true;
+                }
+                else
+                {
+                    float lerp = movementCurve.Evaluate(movingTimer / movingDuration);
+                    transform.position = Vector2.Lerp(destination, start, lerp);
+                }
+                //body.MovePosition(newPosition);
             }
-            //body.MovePosition(newPosition);
         }
     }
 

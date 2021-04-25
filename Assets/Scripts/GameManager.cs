@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
+    public Canvas ui;
     public Player player;
     public List<Room> rooms = new List<Room>();
     public Transform cam;
@@ -30,6 +31,7 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        ui.gameObject.SetActive(true);
         cam.transform.position = rooms[currentRoom].transform.position;
         roomTransitionTimer = -1f;
         RestartRoom();
@@ -47,9 +49,12 @@ public class GameManager : MonoBehaviour
             {
                 if ( roomTransitionTimer < 0 )
                 {
+                    // Disable Last Room
+                    rooms[currentRoom - 1].gameObject.SetActive(false);
                     // Start Next Room
                     cam.position = rooms[currentRoom].transform.position;
                     RestartRoom();
+                    player.Ready();
                 }
                 else
                 {
@@ -65,11 +70,14 @@ public class GameManager : MonoBehaviour
     public void PlayerVisible( Enemy viewer )
     {
         Debug.Log("Uh oh, you've been spotted!");
+        paused = true;
+        // Show Dialog
     }
 
     public void RestartRoom()
     {
         rooms[currentRoom].StartRoom();
+        paused = false;
     }
 
     public void ExitRoom()
@@ -79,12 +87,19 @@ public class GameManager : MonoBehaviour
         {
             // Pause Current Room - Enemies
             rooms[currentRoom].PauseRoom();
+            player.Pause();
+
             // Pan Camera
             lastRoomPos = rooms[currentRoom].transform.position;
             lastPlayerPos = player.transform.position;
-            currentRoom++;
-
             roomTransitionTimer = roomTransitionDuration;
+
+            // Enable and Pause Next Room
+            currentRoom++;
+            rooms[currentRoom].gameObject.SetActive(true);
+            rooms[currentRoom].PauseRoom();
+
+
         }
         // Reached the End
         else
@@ -97,6 +112,13 @@ public class GameManager : MonoBehaviour
     {
 
     }
+
+    public void QuitToMenu()
+    {
+
+    }
+
+    // Private Functions //
 
     private void WinGame()
     {
