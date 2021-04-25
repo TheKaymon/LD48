@@ -7,9 +7,11 @@ public class Player : MonoBehaviour
 {
     public Transform sprite;
     public Transform tipPoint;
+    //public Transform pivotPoint;
 
     public Vector2 targetting;
     public Vector2 direction;
+    public float angleThreshold = 100f;
     public float radius = 0.5f;
 
     public LineRenderer targetLine;
@@ -19,10 +21,13 @@ public class Player : MonoBehaviour
     public LayerMask terrainMask;
 
     public AnimationCurve movementCurve;
+    public AnimationCurve moveTurnCurve;
     public bool moving = false;
     public bool paused = false;
     public Vector2 start;
     public Vector2 destination;
+    private float startAngle;
+    private float endAngle;
     public float movingTimer;
     public float movingDuration;
 
@@ -69,15 +74,17 @@ public class Player : MonoBehaviour
             if ( !moving )
             {
                 targetting = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                direction = targetting - (Vector2)transform.position;
-                float difference = Vector2.SignedAngle(Vector2.up, direction);
-                sprite.eulerAngles = new Vector3(0, 0, difference + 45);
-                targetLine.SetPosition(0, tipPoint.position);
+                direction = targetting - (Vector2) transform.position;
+                float angle = Vector2.Angle(attachNormal, direction);
 
-                if ( direction.sqrMagnitude > 1f )
+                if ( angle < angleThreshold )
                 {
+                    float pointAngle = Vector2.SignedAngle(Vector2.up, direction);
+                    sprite.eulerAngles = new Vector3(0, 0, pointAngle + 45);
+                    targetLine.SetPosition(0, tipPoint.position);
+
                     targetLine.enabled = true;
-                    RaycastHit2D hit = Physics2D.CircleCast(transform.position, radius, direction, 100f, terrainMask.value);
+                    RaycastHit2D hit = Physics2D.CircleCast(tipPoint.position, radius, direction, 100f, terrainMask.value);
 
                     if ( hit && hit.distance < direction.magnitude )
                     {
@@ -99,9 +106,15 @@ public class Player : MonoBehaviour
                             moving = true;
                             start = transform.position;
                             destination = hit.point; // + radius * hit.normal;
+                            startAngle = sprite.eulerAngles.z;
+                            // ToDo: Make Helper Function?
+                            endAngle = Mathf.Atan2(hit.normal.y, hit.normal.x) * Mathf.Rad2Deg - 45f;
+                            if ( endAngle < 0 )
+                                endAngle += 360;
                             movingTimer = movingDuration = hit.distance / speed;
                             attachedTo = hit.collider;
                             attachNormal = hit.normal;
+                            Debug.Log($"Moving From Angle {startAngle} to {endAngle}");
                         }
                         else
                         {
@@ -128,6 +141,9 @@ public class Player : MonoBehaviour
                 {
                     float lerp = movementCurve.Evaluate(movingTimer / movingDuration);
                     transform.position = Vector2.Lerp(destination, start, lerp);
+                    lerp = moveTurnCurve.Evaluate(movingTimer / movingDuration);
+                    float rotation = Mathf.LerpAngle(endAngle, startAngle, lerp);
+                    sprite.eulerAngles = new Vector3(0, 0, rotation); // + 45);
                 }
                 //body.MovePosition(newPosition);
             }

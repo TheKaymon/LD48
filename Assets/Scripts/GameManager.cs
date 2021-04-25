@@ -126,6 +126,7 @@ public class GameManager : MonoBehaviour
         {
             if( nextSceneName != "Win" )
             {
+                currentRoom = 0;
                 SceneManager.LoadScene(nextSceneName);
             }
             else
