@@ -35,11 +35,11 @@ public class Player : MonoBehaviour
     private Vector2 attachNormal = Vector2.up;
     //private Vector2 tipPos;
 
-    public void Reset( Vector2 position )
+    public void Reset( Vector2 position, Vector2 direction )
     {
         moving = false;
         transform.position = position;
-        attachNormal = Vector2.up;
+        attachNormal = direction;
         targetLine.SetPosition(0, tipPoint.position);
     }
 
@@ -114,7 +114,7 @@ public class Player : MonoBehaviour
                             movingTimer = movingDuration = hit.distance / speed;
                             attachedTo = hit.collider;
                             attachNormal = hit.normal;
-                            Debug.Log($"Moving From Angle {startAngle} to {endAngle}");
+                            //Debug.Log($"Moving From Angle {startAngle} to {endAngle}");
                         }
                         else
                         {
@@ -154,6 +154,7 @@ public class Player : MonoBehaviour
     {
         if ( collision.CompareTag("Exit") )
         {
+            Debug.Log($"Entered Exit Zone {collision.name}");
             GameManager.instance.ExitRoom();
         }
         else if ( collision.CompareTag("Entrance") )

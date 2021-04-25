@@ -36,6 +36,7 @@ public class Enemy : MonoBehaviour
 
     public void Reset()
     {
+        frozen = true;
         // Reset Pathing
         previousIndex = 0;
         pathIndex = 1;

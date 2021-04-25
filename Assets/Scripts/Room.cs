@@ -28,7 +28,7 @@ public class Room : MonoBehaviour
             }
         }
         // Move Player
-        GameManager.instance.player.Reset( entrance.position );
+        GameManager.instance.player.Reset( entrance.position, entrance.up );
     }
 
     public void PauseRoom()

@@ -23,29 +23,36 @@ public class GameManager : MonoBehaviour
     public List<Room> rooms = new List<Room>();
     public Transform cam;
     public Light2D globalLight;
+    //public CanvasGroup introScreen;
+    //public AnimationCurve introCurve;
+    //public float introDuration;
     public GameObject popupMenu;
-    public bool paused;
+    public bool paused = true;
 
     private int currentRoom = 0;
     private Vector2 lastRoomPos;
     private Vector2 lastPlayerPos;
     private readonly float roomTransitionDuration = 1f;
     private float roomTransitionTimer;
+    private float playerStartAngle;
+    private float playerEndAngle;
 
     private List<Light2D> roomLights = new List<Light2D>();
 
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log("GameManager Loaded");
         for ( int i = 1; i < rooms.Count; i++ )
         {
             rooms[i].gameObject.SetActive(false);
         }
         ui.gameObject.SetActive(true);
         cam.transform.position = rooms[currentRoom].transform.position;
+        player.Reset(rooms[currentRoom].entrance.position, rooms[currentRoom].entrance.up);
         roomLights = rooms[currentRoom].lights;
-        roomTransitionTimer = -1f;
-        RestartRoom();
+        //roomTransitionTimer = introDuration;
+        //RestartRoom();
     }
 
     // Update is called once per frame
@@ -59,21 +66,37 @@ public class GameManager : MonoBehaviour
             //// Standard Transition
             //if ( !rooms[currentRoom].requiresTransition )
             //{
-                if ( roomTransitionTimer < 0 )
+            if ( roomTransitionTimer < 0 )
+            {
+                if ( currentRoom > 0 )
                 {
                     // Disable Last Room
                     rooms[currentRoom - 1].gameObject.SetActive(false);
-                    // Start Next Room
-                    cam.position = rooms[currentRoom].transform.position;
-                    RestartRoom();
-                    player.Ready();
                 }
-                else
+                //else
+                //{
+                //    introScreen.gameObject.SetActive(false);
+                //}
+                // Start Next Room
+                cam.position = rooms[currentRoom].transform.position;
+                RestartRoom();
+            }
+            else
+            {
+                if ( currentRoom > 0 )
                 {
                     float lerp = roomTransitionTimer / roomTransitionDuration;
                     cam.position = Vector2.Lerp(rooms[currentRoom].transform.position, lastRoomPos, lerp);
                     player.transform.position = Vector2.Lerp(rooms[currentRoom].entrance.position, lastPlayerPos, lerp);
+                    float angle = Mathf.LerpAngle(playerEndAngle, playerStartAngle, lerp);
+                    player.sprite.eulerAngles = new Vector3(0, 0, angle);
                 }
+                //else
+                //{
+                //    float lerp = 1f - roomTransitionTimer / introDuration;
+                //    introScreen.alpha = introCurve.Evaluate(lerp);
+                //}
+            }
             //}
             // Fade Transition
         }
@@ -93,16 +116,20 @@ public class GameManager : MonoBehaviour
         Debug.Log("Uh oh, you've been spotted!");
         paused = true;
         // Show Dialog
+        popupMenu.SetActive(true);
     }
 
     public void RestartRoom()
     {
+        popupMenu.SetActive(false);
         rooms[currentRoom].StartRoom();
+        player.Ready();
         paused = false;
     }
 
     public void ExitRoom()
     {
+        Debug.Log($"Exiting from room {currentRoom}");
         // More Rooms to Go
         if( currentRoom < rooms.Count - 1 )
         {
@@ -120,6 +147,12 @@ public class GameManager : MonoBehaviour
             rooms[currentRoom].gameObject.SetActive(true);
             rooms[currentRoom].PauseRoom();
             roomLights = rooms[currentRoom].lights;
+
+            playerStartAngle = player.sprite.eulerAngles.z;
+            // ToDo: Make Helper Function?
+            playerEndAngle = Mathf.Atan2(rooms[currentRoom].entrance.up.y, rooms[currentRoom].entrance.up.x) * Mathf.Rad2Deg - 45f;
+            if ( playerEndAngle < 0 )
+                playerEndAngle += 360;
         }
         // Reached the End
         else
