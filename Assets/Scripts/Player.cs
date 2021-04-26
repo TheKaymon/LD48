@@ -34,6 +34,7 @@ public class Player : MonoBehaviour
     public float movingDuration;
 
     private Collider2D attachedTo;
+    private Collider2D lastExit = null;
     private Vector2 attachNormal = Vector2.up;
     //private Vector2 tipPos;
 
@@ -159,9 +160,10 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter2D( Collider2D collision )
     {
-        if ( collision.CompareTag("Exit") )
+        if ( collision.CompareTag("Exit") && collision != lastExit )
         {
             Debug.Log($"Entered Exit Zone {collision.name}");
+            lastExit = collision;
             GameManager.instance.ExitRoom();
         }
         else if ( collision.CompareTag("Entrance") )
