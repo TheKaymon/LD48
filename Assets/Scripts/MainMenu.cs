@@ -28,17 +28,17 @@ public class MainMenu : MonoBehaviour
 
     public void ShowMenu()
     {
-        menu.gameObject.SetActive(true);
+        //menu.gameObject.SetActive(true);
     }
 
     public void HideMenu()
     {
-        menu.gameObject.SetActive(false);
+       //menu.gameObject.SetActive(false);
     }
 
     public void QuitGame()
     {
-
+        Application.Quit();
     }
 
 }

@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class FieldOfView : MonoBehaviour
 {
+    public Light2D vision;
+    [HideInInspector]
     public float viewRadius;
-    [Range(0,180)] // If > 180 View Texture size needs to be increased
+    [HideInInspector] // If > 180 View Texture size needs to be increased
     public float viewAngle;
     //public float meshResolution;
     public Vector2 Position => transform.position;
@@ -24,6 +27,8 @@ public class FieldOfView : MonoBehaviour
 
     private void Start()
     {
+        viewRadius = vision.pointLightOuterRadius;
+        viewAngle = vision.pointLightOuterAngle;
         //viewMeshFilter = GetComponent<MeshFilter>();
         //viewMesh = new Mesh
         //{

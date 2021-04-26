@@ -7,6 +7,8 @@ public class Player : MonoBehaviour
 {
     public Transform sprite;
     public Transform tipPoint;
+    public ParticleSystem particles;
+    public AudioSource moveSFX;
     //public Transform pivotPoint;
 
     public Vector2 targetting;
@@ -41,12 +43,14 @@ public class Player : MonoBehaviour
         transform.position = position;
         attachNormal = direction;
         targetLine.SetPosition(0, tipPoint.position);
+        particles.gameObject.SetActive(false);
     }
 
     public void Pause()
     {
         paused = true;
         targetLine.enabled = false;
+        particles.gameObject.SetActive(false);
     }
 
     public void Ready()
@@ -114,6 +118,8 @@ public class Player : MonoBehaviour
                             movingTimer = movingDuration = hit.distance / speed;
                             attachedTo = hit.collider;
                             attachNormal = hit.normal;
+                            particles.gameObject.SetActive(true);
+                            moveSFX.Play();
                             //Debug.Log($"Moving From Angle {startAngle} to {endAngle}");
                         }
                         else
@@ -136,6 +142,7 @@ public class Player : MonoBehaviour
                     transform.position = destination;
                     targetLine.SetPosition(0, tipPoint.position);
                     targetLine.enabled = true;
+                    particles.gameObject.SetActive(false);
                 }
                 else
                 {

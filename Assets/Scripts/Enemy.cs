@@ -78,7 +78,7 @@ public class Enemy : MonoBehaviour
         if ( !GameManager.instance.paused && !frozen )
         {
             // Check if Player is Visible
-            if ( fov.CheckVisible(GameManager.instance.player.transform.position) )
+            if ( fov.CheckVisible(GameManager.instance.player.sprite.position) )
             {
                 GameManager.instance.PlayerVisible(this);
             }

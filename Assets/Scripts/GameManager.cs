@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,10 +24,12 @@ public class GameManager : MonoBehaviour
     public List<Room> rooms = new List<Room>();
     public Transform cam;
     public Light2D globalLight;
+    public AudioSource BGM;
     //public CanvasGroup introScreen;
     //public AnimationCurve introCurve;
     //public float introDuration;
     public GameObject popupMenu;
+    public TextMeshProUGUI popUpText;
     public bool paused = true;
 
     private int currentRoom = 0;
@@ -58,6 +61,15 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if( Input.GetKeyDown(KeyCode.Escape ) )
+        {
+            if( !paused )
+            {
+                paused = true;
+                popUpText.SetText("Game Paused");
+                popupMenu.SetActive(true);
+            }
+        }
         // Transitioning Between Rooms
         if( roomTransitionTimer > 0 )
         {
@@ -116,6 +128,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("Uh oh, you've been spotted!");
         paused = true;
         // Show Dialog
+        popUpText.SetText("You've been spotted!");
         popupMenu.SetActive(true);
     }
 
@@ -124,6 +137,10 @@ public class GameManager : MonoBehaviour
         popupMenu.SetActive(false);
         rooms[currentRoom].StartRoom();
         player.Ready();
+        if( !BGM.isPlaying )
+        {
+            BGM.Play();
+        }
         paused = false;
     }
 
@@ -160,10 +177,12 @@ public class GameManager : MonoBehaviour
             if( nextSceneName != "Win" )
             {
                 currentRoom = 0;
+                BGM.Stop();
                 SceneManager.LoadScene(nextSceneName);
             }
             else
             {
+                BGM.Stop();
                 WinGame();
             }
         }
@@ -176,13 +195,16 @@ public class GameManager : MonoBehaviour
 
     public void QuitToMenu()
     {
-
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Private Functions //
 
     private void WinGame()
     {
+        paused = true;
         Debug.Log("You won the game!");
+        popUpText.SetText("Victory!");
+        popupMenu.SetActive(true);
     }
 }

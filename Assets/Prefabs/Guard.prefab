@@ -170,6 +170,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b3bf7f645b2cd448b9423ddf990268b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  vision: {fileID: 3324603487786070110}
   viewRadius: 5
   viewAngle: 45
   terrainMask:
@@ -262,7 +263,7 @@ MonoBehaviour:
   m_UseNormalMap: 0
   m_LightOrder: 0
   m_AlphaBlendOnOverlap: 0
-  m_ShadowIntensity: 0.5
+  m_ShadowIntensity: 0.75
   m_ShadowVolumeIntensity: 0
   m_PointLightInnerAngle: 30
   m_PointLightOuterAngle: 45

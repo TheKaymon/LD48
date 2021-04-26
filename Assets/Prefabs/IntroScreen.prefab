@@ -331,7 +331,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   continueText: {fileID: 3664507727197606816}
-  minDuration: 2
+  minDuration: 1
 --- !u!114 &8293191173300160550
 MonoBehaviour:
   m_ObjectHideFlags: 0
