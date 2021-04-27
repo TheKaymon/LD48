@@ -28,6 +28,7 @@ public class MainMenu : MonoBehaviour
 
     public void ShowMenu()
     {
+        Screen.fullScreen = !Screen.fullScreen;
         //menu.gameObject.SetActive(true);
     }
 
